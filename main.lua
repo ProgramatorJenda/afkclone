@@ -30,11 +30,20 @@ function drawHeroAvatar(hero, i)
     local startX = 20 -- Initial X position
     local startY = 450 -- Fixed Y position for all avatars
     local spacing = 60 -- Space between each avatar
+    local maxPerRow = 13 -- Maximum number of avatars per row
+    local rowSpacing = 70 -- Space between each row
 
-    hero.x = startX + (i - 1) * spacing
-    hero.y = startY
+    local row = math.floor((i - 1) / maxPerRow)
+    local col = (i - 1) % maxPerRow
+
+    hero.x = startX + col * spacing
+    hero.y = startY + row * (avatarSize + 10) -- Add spacing for new rows
     hero.width = avatarSize
     hero.height = avatarSize
+    if not hero.debugPrinted then
+        print("Hero:", hero.name, "Index:", i, "X:", hero.x, "Y:", hero.y, "Row:", row, "Col:", col)
+        hero.debugPrinted = true -- Prevent future prints
+    end
 
     -- Load the hero image
     function checkForAvatar(hero)
@@ -227,20 +236,19 @@ end
 function getUserHeroList()
     userHeroList = {
         {name = "Shemira", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
-        -- {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
+        {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
         {name = "Rowan", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
-        {name = "Eironn", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Ferael", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Tasi", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Lyca", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Nara", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Gwyneth", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
+        {name = "Eironn", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Wilder},
+        {name = "Ferael", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
+        {name = "Tasi", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Wilder},
+        {name = "Lyca", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Wilder},
+        {name = "Nara", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
+        {name = "Gwyneth", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
         {name = "Belinda", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
-        -- {name = "Roselina", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Rosaline", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Fawkes", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Nemora", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Estrilda", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
+        {name = "Roselina", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
+        {name = "Fawkes", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
+        {name = "Nemora", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Wilder},
+        {name = "Estrilda", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
         {name = "Thoran", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
         {name = "Hendrik", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer}
     }
