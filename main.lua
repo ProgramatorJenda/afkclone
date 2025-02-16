@@ -1,7 +1,15 @@
 _G.love = require("love")
+selectedHero = nil
+
+-- Table to track where heroes are placed in combat
+allyHeroes = {}
+activeCombatHeroes = {}
+
 function love.load()
     love.window.setTitle("AFK Arena-like Game")
     love.window.setMode(800, 600)  -- Window size (width, height)
+
+    userHeroList = getUserHeroList() -- Store heroes globally
 
     -- Define sections
     screenWidth, screenHeight = love.graphics.getDimensions()
@@ -23,12 +31,38 @@ function drawHeroAvatar(hero, i)
     local startY = 450 -- Fixed Y position for all avatars
     local spacing = 60 -- Space between each avatar
 
+    hero.x = startX + (i - 1) * spacing
+    hero.y = startY
+    hero.width = avatarSize
+    hero.height = avatarSize
+
+
     -- Load the hero image
     local heroAvatar = love.graphics.newImage("assets/heroes/" .. hero.name .. ".png")
+    if selectedHero == hero then
+        love.graphics.setColor(1, 0, 0)  -- Red color for the rectangle
+        love.graphics.setLineWidth(3)    -- Set line width for the rectangle
+        love.graphics.rectangle("line", startX + (i - 1) * spacing - 5, startY - 5, avatarSize + 10, avatarSize + 10)  -- Rectangle around the avatar
+    end
 
+    local isInCombat = false
+    for _, combatHero in ipairs(activeCombatHeroes) do
+        if combatHero == hero then
+            isInCombat = true
+            break
+        end
+    end
+    
     -- Draw the hero avatar at the correct position
     love.graphics.setColor(1, 1, 1)
     love.graphics.draw(heroAvatar, startX + (i - 1) * spacing, startY, 0, avatarSize / heroAvatar:getWidth(), avatarSize / heroAvatar:getHeight())
+
+    if isInCombat then
+        love.graphics.setColor(0.5, 0.5, 0.5, 0.5)  -- Grey with some transparency
+        love.graphics.rectangle("fill", startX + (i - 1) * spacing, startY, avatarSize, avatarSize)
+    else
+        love.graphics.setColor(1, 1, 1) -- Set color to white if not in combat
+    end
 end
 
 -- x = 20 y = 450 is where we start drawing hero avatar objects
@@ -39,6 +73,63 @@ function drawHeroSection(heroSectionBackground)
         heroSection.height / heroSectionBackground:getHeight() -- Scale height
     )
 end
+
+
+function love.mousepressed(x, y, button)
+    if button == 1 then -- Left mouse button
+    
+        -- Check if click is on a hero avatar        
+        for i, hero in ipairs(userHeroList) do
+            if x >= hero.x and x <= hero.x + hero.width and
+               y >= hero.y and y <= hero.y + hero.height then
+                selectedHero = hero -- Set selected hero
+
+                for _, combatHero in ipairs(activeCombatHeroes) do
+                    if combatHero == selectedHero then
+                        print("Hero " .. selectedHero.name .. " is already in combat")
+                        selectedHero = nil
+                        break
+                    else
+                        print("Selected Hero: " .. hero.name)
+                        break
+                    end
+                end
+        end
+    end
+        -- Check if click is on an Ally position
+        for i, position in ipairs(allyPositions) do
+            -- Check if the click is within the circle
+            if (x - position.x)^2 + (y - position.y)^2 <= 30^2 then
+                if selectedHero then
+                    selectedHero.x = position.x
+                    selectedHero.y = position.y
+                    print("Placed " .. selectedHero.name .. " at Ally position")
+                    allyHeroes[i] = {
+                        name = selectedHero.name,
+                        avatar = love.graphics.newImage("assets/heroes/" .. selectedHero.name .. ".png"),
+                    }
+
+                    table.insert(activeCombatHeroes, selectedHero)
+                    print("Hero " .. selectedHero.name .. " is now in combat")
+                    selectedHero = nil
+                end
+                break
+            end
+        end
+
+        -- Check if click is on an Enemy position (circle bounds)
+        for i, position in ipairs(enemyPositions) do
+            -- Check if the click is within the circle
+            if (x - position.x)^2 + (y - position.y)^2 <= 30^2 then
+                if selectedHero then
+                    print("Please select an Ally position!")
+                end
+                break
+            end
+        end
+    end
+end
+
 
 function drawHeroList(heroList)
     for i, hero in ipairs(heroList) do
@@ -78,23 +169,33 @@ function drawArena(background)
 )
   
 -- x = 70 y = 160
-    local drawAllyPositions = function ()
-        local allyPositions = {
-            {x = 40, y = 120},
-            {x = 40, y = 210},
-            {x = 40, y = 300},
-            {x = 160, y = 160},
-            {x = 160, y = 250},
-        }
-        for i, position in ipairs(allyPositions) do
-            love.graphics.setColor(0, 1, 0)
+local drawAllyPositions = function ()
+    allyPositions = {
+        {x = 40, y = 120},
+        {x = 40, y = 210},
+        {x = 40, y = 300},
+        {x = 160, y = 160},
+        {x = 160, y = 250},
+    }
+
+    for i, position in ipairs(allyPositions) do
+        -- Check if a hero is placed at this position
+        local heroAtPosition = allyHeroes[i]
+        
+        if heroAtPosition then
+            love.graphics.setColor(1, 1, 1)
+            -- If there is a hero at this position, draw the hero's avatar
+            love.graphics.draw(heroAtPosition.avatar, position.x - heroAtPosition.avatar:getWidth() / 2, position.y - heroAtPosition.avatar:getHeight() / 2)
+        else
+            -- If no hero is placed, draw a green circle to show it's an available position
+            love.graphics.setColor(0, 1, 0, 0.5)
             love.graphics.circle("fill", position.x, position.y, 30)
         end
-        
     end
+end
 
     local drawEnemyPositions = function ()
-        local enemyPositions = {
+        enemyPositions = {
             {x = 750, y = 120},
             {x = 750, y = 210},
             {x = 750, y = 300},
@@ -117,5 +218,5 @@ function love.draw()
     drawHeroSection(heroSectionBackground)
     local mouseX, mouseY = love.mouse.getPosition()
     love.graphics.print("Mouse Position: X = " .. mouseX .. ", Y = " .. mouseY, 10, 10)
-    drawHeroList(getUserHeroList())
+    drawHeroList(userHeroList)
 end
