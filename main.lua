@@ -36,9 +36,18 @@ function drawHeroAvatar(hero, i)
     hero.width = avatarSize
     hero.height = avatarSize
 
-
     -- Load the hero image
-    local heroAvatar = love.graphics.newImage("assets/heroes/" .. hero.name .. ".png")
+    function checkForAvatar(hero)
+        local avatarPath = "assets/heroes/" .. hero.name .. ".png"
+    
+        -- Check if the file exists
+        if love.filesystem.getInfo(avatarPath) then
+            return love.graphics.newImage(avatarPath)
+        else
+            return love.graphics.newImage("assets/heroes/placeholder.png")
+        end
+    end
+    local heroAvatar = checkForAvatar(hero)
     if selectedHero == hero then
         love.graphics.setColor(1, 0, 0)  -- Red color for the rectangle
         love.graphics.setLineWidth(3)    -- Set line width for the rectangle
@@ -155,7 +164,7 @@ function love.mousepressed(x, y, button)
 
                     allyHeroes[i] = {
                         name = selectedHero.name,
-                        avatar = love.graphics.newImage("assets/heroes/" .. selectedHero.name .. ".png"),
+                        avatar = checkForAvatar(selectedHero)  -- Use the function to check for the image
                     }
 
                     selectedHero = nil
@@ -171,17 +180,21 @@ function love.mousepressed(x, y, button)
                     local oldHero = allyHeroes[i]
                     allyHeroes[i] = nil
                     if not allyHeroes[i] then
+                        --Debug
                         print("Removed " .. oldHero.name .. " from position " .. i)
                     else
+                        --Debug
                         print("There is still a hero at position " .. i)
                     end
                     --remove hero from combat
                     if oldHero then
+                        --Debug
                         print("Removing " .. oldHero.name .. " from combat.")
                         for i, hero in ipairs(activeCombatHeroes) do
                             if hero.name == oldHero.name then
                                 hero.isInCombat = false
                                 table.remove(activeCombatHeroes, i)
+                                --Debug
                                 print("Removed " .. oldHero.name .. " from combat.")
                                 break
                             end
@@ -213,23 +226,23 @@ end
 -- in perfect world we would have a database of heroes and their stats for each user
 function getUserHeroList()
     userHeroList = {
-        {name = "Shemira", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
-        {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
-        -- {name = "Rowan", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Eironn", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
+        {name = "Shemira", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
+        -- {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
+        {name = "Rowan", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
+        {name = "Eironn", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Ferael", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Tasi", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Lyca", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Nara", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Gwyneth", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Belinda", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
+        {name = "Belinda", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer},
         -- {name = "Roselina", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Rosaline", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Fawkes", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Nemora", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Estrilda", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Thoran", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        -- {name = "Hendrik", level = 240, ascension = 0, signatureItem = 0, furniture = 0}
+        {name = "Thoran", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Graveborn},
+        {name = "Hendrik", level = 240, ascension = 0, signatureItem = 0, furniture = 0, faction = Lightbearer}
     }
     return userHeroList
 end
