@@ -111,7 +111,7 @@ function love.mousepressed(x, y, button)
                     --End Debug
 
                     local oldHero = allyHeroes[i]
-                    allyHeroes[i] = nil  -- Remove the hero by setting to nil instead of using table.remove
+                    allyHeroes[i] = nil
                     
                     if not allyHeroes[i] then
                         print("Removed " .. oldHero.name .. " from position " .. i)
@@ -162,10 +162,37 @@ function love.mousepressed(x, y, button)
                 break
             end
         end
+    else
+        -- Check if the click is on an ally position
+        for i, position in ipairs(allyPositions) do
+            if (x - position.x)^2 + (y - position.y)^2 <= 30^2 then
+                if allyHeroes[i] then
+                    -- remove ally hero from the position
+                    local oldHero = allyHeroes[i]
+                    allyHeroes[i] = nil
+                    if not allyHeroes[i] then
+                        print("Removed " .. oldHero.name .. " from position " .. i)
+                    else
+                        print("There is still a hero at position " .. i)
+                    end
+                    --remove hero from combat
+                    if oldHero then
+                        print("Removing " .. oldHero.name .. " from combat.")
+                        for i, hero in ipairs(activeCombatHeroes) do
+                            if hero.name == oldHero.name then
+                                hero.isInCombat = false
+                                table.remove(activeCombatHeroes, i)
+                                print("Removed " .. oldHero.name .. " from combat.")
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
     end
-        -- Check if click is on an Enemy position (circle bounds)
+        -- Check if click is on an Enemy position
         for i, position in ipairs(enemyPositions) do
-            -- Check if the click is within the circle
             if (x - position.x)^2 + (y - position.y)^2 <= 30^2 then
                 if selectedHero then
                     print("Please select an Ally position!")
