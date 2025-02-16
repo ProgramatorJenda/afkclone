@@ -77,46 +77,92 @@ end
 
 function love.mousepressed(x, y, button)
     if button == 1 then -- Left mouse button
-    
         -- Check if click is on a hero avatar        
         for i, hero in ipairs(userHeroList) do
             if x >= hero.x and x <= hero.x + hero.width and
                y >= hero.y and y <= hero.y + hero.height then
                 selectedHero = hero -- Set selected hero
 
-                for _, combatHero in ipairs(activeCombatHeroes) do
-                    if combatHero == selectedHero then
-                        print("Hero " .. selectedHero.name .. " is already in combat")
-                        selectedHero = nil
-                        break
-                    else
-                        print("Selected Hero: " .. hero.name)
-                        break
-                    end
+                --Debug
+                -- print("Selected Hero: " .. selectedHero.name)
+                -- print(selectedHero.isInCombat)
+                -- End Debug
+                if selectedHero.isInCombat then
+                    print("Hero " .. selectedHero.name .. " is already in combat")
+                    selectedHero = nil
+                    break
+                else
+                    print("Selected Hero: " .. hero.name)
+                    break
                 end
         end
     end
+
+    if selectedHero then
         -- Check if click is on an Ally position
         for i, position in ipairs(allyPositions) do
             -- Check if the click is within the circle
             if (x - position.x)^2 + (y - position.y)^2 <= 30^2 then
-                if selectedHero then
+                if allyHeroes[i] then
+
+                    --Debug
+                    print("Allied hero at position " .. i .. ": " .. allyHeroes[i].name)
+                    print("Removing " .. allyHeroes[i].name .. " from position " .. i)
+                    --End Debug
+
+                    local oldHero = allyHeroes[i]
+                    allyHeroes[i] = nil  -- Remove the hero by setting to nil instead of using table.remove
+                    
+                    if not allyHeroes[i] then
+                        print("Removed " .. oldHero.name .. " from position " .. i)
+                    else
+                        print("There is still a hero at position " .. i)
+                    end
+                
+                    -- Remove old hero from activeCombatHeroes
+                    if oldHero then
+                    print("Removing " .. oldHero.name .. " from combat.")
+                    for i, hero in ipairs(activeCombatHeroes) do
+                        if hero.name == oldHero.name then
+                            hero.isInCombat = false
+                            table.remove(activeCombatHeroes, i)
+                            print("Removed " .. oldHero.name .. " from combat.")
+                            break
+                        end
+                    end
+                end
+            end
+
                     selectedHero.x = position.x
                     selectedHero.y = position.y
+                    print("Selected Hero: " .. selectedHero.name)
+                    table.insert(activeCombatHeroes, selectedHero)
+                    selectedHero.isInCombat = true
+
                     print("Placed " .. selectedHero.name .. " at Ally position")
+                    print("Hero " .. selectedHero.name .. " is now in combat")
+
+                    --Debug
+                    print("Active Combat Heroes: ")
+                    for k = 1, #activeCombatHeroes do
+                        local hero = activeCombatHeroes[k]
+                        print("Hero " .. k .. ":")
+                        print("  Name: " .. hero.name)
+                        print("  In Combat: " .. tostring(hero.isInCombat))
+                    end
+                    -- End Debug
+
+
                     allyHeroes[i] = {
                         name = selectedHero.name,
                         avatar = love.graphics.newImage("assets/heroes/" .. selectedHero.name .. ".png"),
                     }
 
-                    table.insert(activeCombatHeroes, selectedHero)
-                    print("Hero " .. selectedHero.name .. " is now in combat")
                     selectedHero = nil
-                end
                 break
             end
         end
-
+    end
         -- Check if click is on an Enemy position (circle bounds)
         for i, position in ipairs(enemyPositions) do
             -- Check if the click is within the circle
@@ -140,8 +186,8 @@ end
 -- in perfect world we would have a database of heroes and their stats for each user
 function getUserHeroList()
     userHeroList = {
-        {name = "Shemira", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
-        {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
+        {name = "Shemira", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
+        {name = "Lucius", level = 240, ascension = 0, signatureItem = 0, furniture = 0, isInCombat = false},
         -- {name = "Rowan", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Eironn", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
         -- {name = "Ferael", level = 240, ascension = 0, signatureItem = 0, furniture = 0},
